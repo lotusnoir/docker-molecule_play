@@ -11,7 +11,7 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends apt-transpor
 
 ### Install molecule
 RUN /usr/local/bin/python -m pip install --upgrade pip \
-    && pip install --no-cache-dir ansible molecule molecule-docker molecule-goss \
+    && pip install --no-cache-dir ansible molecule molecule-docker molecule-goss jmespath\
     && apt-get update -y && apt-get install -y --no-install-recommends libssl-dev python-setuptools \
     && curl -fsSL https://goss.rocks/install | GOSS_DST=/usr/local/sbin sh \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
