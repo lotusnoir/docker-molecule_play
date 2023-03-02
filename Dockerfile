@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.9
 
 ### Install docker
 RUN apt-get update -y && apt-get install -y --no-install-recommends apt-transport-https ca-certificates curl gnupg-agent lsb-release \
@@ -12,8 +12,9 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends apt-transpor
 ### Install molecule
 RUN /usr/local/bin/python -m pip install --upgrade pip \
     && pip install --no-cache-dir ansible molecule molecule-docker molecule-goss jmespath\
-    && apt-get update -y && apt-get install -y --no-install-recommends libssl-dev python-setuptools python3-netaddr \
-    && curl -fsSL https://goss.rocks/install | GOSS_DST=/usr/local/sbin sh \
+    && apt-get update -y \
+    && apt-get install -y --no-install-recommends libssl-dev python3-setuptools python3-netaddr \
+    && wget -q -O /usr/local/bin/goss https://github.com/aelsabbahy/goss/releases/download/v0.3.21/goss-linux-amd64 && chmod +x /usr/local/bin/goss \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 CMD [""]
