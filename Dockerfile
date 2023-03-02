@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.9
 
 ### Install docker
 RUN apt-get update -y && apt-get install -y --no-install-recommends apt-transport-https ca-certificates curl gnupg-agent lsb-release \
