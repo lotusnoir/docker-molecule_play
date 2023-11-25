@@ -77,7 +77,7 @@ push_img_on_dockerhub:
     - docker info
     - docker login -u "${DOCKERHUB_USER}" -p "${DOCKERHUB_TOKEN}"
   script:
-    - docker build -t "${DOCKERHUB_TAG}" .
+    - docker build -t "${DOCKERHUB_TAG}:latest" -t "${DOCKERHUB_TAG}:v${VERSION}" .
     - docker push "${DOCKERHUB_TAG}:latest"
     - docker push "${DOCKERHUB_TAG}:v${VERSION}"
 
