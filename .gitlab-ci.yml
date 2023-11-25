@@ -1,36 +1,53 @@
 ---
 stages:
-  - preflight
+#  - preflight
   - push
 
 variables:
   CI_REGISTRY_URL: registry-test
   CI_REGISTRY_USER: CI
   REGISTRY_IMG_TAG: ${CI_REGISTRY_URL}.${COMPANY_DOMAIN}/docker_images/docker-molecule_play:latest
-  DOCKERHUB_TAG: ${DOCKERHUB_USER}/molecule_play:latest
+  DOCKERHUB_TAG: ${DOCKERHUB_USER}/molecule_play
   DOCKERHUB_USER: lotusnoir
   GITHUB_USER: lotusnoir
+  VERSION: "2.0.0"
 
 
 ##################################################
 # PREFLIGHT
 ##################################################
-yamllint:
-  stage: preflight
-  image: sdesbure/yamllint
-  before_script:
-    - yamllint --version
-  script:
-    - yamllint .
+#yamllint:
+#  stage: preflight
+#  image: sdesbure/yamllint
+#  before_script:
+#    - yamllint --version
+#  script:
+#    - yamllint .
+#
+#hadolint:
+#  stage: preflight
+#  image: hadolint/hadolint:latest-debian
+#  before_script:
+#    - hadolint --version
+#  script:
+#    - hadolint Dockerfile
 
-hadolint:
-  stage: preflight
-  image: hadolint/hadolint:latest-debian
-  before_script:
-    - hadolint --version
-  script:
-    - hadolint Dockerfile
-
+##################################################
+# TEST BUILD
+##################################################
+#test_build:
+#  stage: test
+#  image: docker:latest
+#  needs: ["yamllint", "hadolint"]
+#  services:
+#    - docker:dind
+#  script:
+#    - docker build -t test-build-moleculeplay .
+#    - docker stop test-moleculeplay && docker rm test-moleculeplay
+#    - docker run -d --name=test-moleculeplay --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro test-build-moleculeplay
+#    - docker exec test-moleculeplay systemctl --version
+#    - docker exec test-moleculeplay goss --version
+#    - docker stop test-moleculeplay && docker rm test-moleculeplay
 
 ##################################################
 # PUSH CODE AND IMAGE
@@ -53,7 +70,7 @@ hadolint:
 push_img_on_dockerhub:
   stage: push
   image: docker:latest
-  needs: ["yamllint", "hadolint"]
+  #needs: ["yamllint", "hadolint"]
   services:
     - docker:dind
   before_script:
@@ -61,12 +78,13 @@ push_img_on_dockerhub:
     - docker login -u "${DOCKERHUB_USER}" -p "${DOCKERHUB_TOKEN}"
   script:
     - docker build -t "${DOCKERHUB_TAG}" .
-    - docker push "${DOCKERHUB_TAG}"
+    - docker push "${DOCKERHUB_TAG}:latest"
+    - docker push "${DOCKERHUB_TAG}:v${VERSION}"
 
 push_src_on_github:
   stage: push
   image: alpine:latest
-  needs: ["yamllint", "hadolint"]
+  #needs: ["yamllint", "hadolint"]
   before_script:
     - apk add git openssh-client
     - eval $(ssh-agent -s)

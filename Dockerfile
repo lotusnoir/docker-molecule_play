@@ -1,20 +1,25 @@
-FROM python:3.9
+FROM docker:24.0.7-dind
 
-### Install docker
-RUN apt-get update -y && apt-get install -y --no-install-recommends apt-transport-https ca-certificates curl gnupg-agent lsb-release \
-    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
-    && echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
-  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
-    && apt-get update -y && apt-get install -y --no-install-recommends docker-ce docker-ce-cli containerd.io \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+ENV DEFAULT_LOCAL_TMP="/tmp"
 
-### Install molecule
-RUN /usr/local/bin/python -m pip install --upgrade pip \
-    && pip install --no-cache-dir ansible molecule molecule-docker molecule-goss jmespath\
-    && apt-get update -y \
-    && apt-get install -y --no-install-recommends libssl-dev python3-setuptools python3-netaddr \
-    && wget -q -O /usr/local/bin/goss https://github.com/aelsabbahy/goss/releases/download/v0.3.21/goss-linux-amd64 && chmod +x /usr/local/bin/goss \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+#RUN apk update && apk upgrade
 
-CMD [""]
+ENV PYTHONUNBUFFERED=1
+RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
+RUN python3 -m ensurepip
+RUN pip3 install --no-cache --upgrade pip setuptools
+
+ENV ansible_version=2.15.6
+ENV ansible_major_version=2.15
+ENV ansible_commv=8.6.1
+ENV molecule_version=6.0.2
+ENV umask=022
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
+
+RUN pip3 install --disable-pip-version-check --break-system-packages ansible==${ansible_commv} ansible-core==${ansible_version} molecule==${molecule_version} molecule-docker ansible-lint flake8 yamllint
+
+RUN addgroup -S docker
+RUN adduser -S docker -H -G docker 
+USER docker
+CMD ["bash"]
