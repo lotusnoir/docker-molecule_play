@@ -1,6 +1,7 @@
 FROM docker:24.0.7-dind
 
 ENV DEFAULT_LOCAL_TMP="/tmp"
+ENV ANSIBLE_REMOTE_TMP="/tmp"
 
 #RUN apk update && apk upgrade
 
@@ -19,7 +20,8 @@ ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 RUN pip3 install --disable-pip-version-check --break-system-packages ansible==${ansible_commv} ansible-core==${ansible_version} molecule==${molecule_version} molecule-docker ansible-lint flake8 yamllint
 
-RUN addgroup -S docker
-RUN adduser -S docker -H -G docker 
-USER docker
-CMD ["bash"]
+#RUN addgroup -S docker
+#RUN adduser -S docker -H -G docker 
+#USER docker
+
+CMD [""]
