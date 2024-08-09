@@ -1,52 +1,55 @@
 ---
 stages:
-  #  - preflight
+  - check
+  - test
   - push
 
 variables:
+  OS_TYPE: play
   CI_REGISTRY_URL: registry-test
   CI_REGISTRY_USER: CI
-  REGISTRY_IMG_TAG: ${CI_REGISTRY_URL}.${COMPANY_DOMAIN}/docker_images/docker-molecule_play:latest
-  DOCKERHUB_TAG: ${DOCKERHUB_USER}/molecule_play
+  REGISTRY_IMG_TAG: ${CI_REGISTRY_URL}.${COMPANY_DOMAIN}/docker_images/docker-molecule_${OS_TYPE}:latest
+  DOCKERHUB_TAG: ${DOCKERHUB_USER}/molecule_${OS_TYPE}:latest
   DOCKERHUB_USER: lotusnoir
   GITHUB_USER: lotusnoir
-  VERSION: "2.0.0"
+
 
 ##################################################
-# PREFLIGHT
+# CHECKS
 ##################################################
-#yamllint:
-#  stage: preflight
-#  image: sdesbure/yamllint
-#  before_script:
-#    - yamllint --version
-#  script:
-#    - yamllint .
-#
-#hadolint:
-#  stage: preflight
-#  image: hadolint/hadolint:latest-debian
-#  before_script:
-#    - hadolint --version
-#  script:
-#    - hadolint Dockerfile
+yamllint:
+  stage: check
+  image: sdesbure/yamllint
+  before_script:
+    - yamllint --version
+  script:
+    - yamllint .
+
+hadolint:
+  stage: check
+  image: hadolint/hadolint:latest-debian
+  before_script:
+    - hadolint --version
+  script:
+    - hadolint Dockerfile
+
 
 ##################################################
 # TEST BUILD
 ##################################################
-#test_build:
-#  stage: test
-#  image: docker:latest
-#  needs: ["yamllint", "hadolint"]
-#  services:
-#    - docker:dind
-#  script:
-#    - docker build -t test-build-moleculeplay .
-#    - docker stop test-moleculeplay && docker rm test-moleculeplay
-#    - docker run -d --name=test-moleculeplay --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro test-build-moleculeplay
-#    - docker exec test-moleculeplay systemctl --version
-#    - docker exec test-moleculeplay goss --version
-#    - docker stop test-moleculeplay && docker rm test-moleculeplay
+test_build:
+  stage: test
+  image: docker:latest
+  needs: ["yamllint", "hadolint"]
+  services:
+    - docker:dind
+  script:
+    - docker build -t test-build-${OS_TYPE} .
+    - docker stop test-${OS_TYPE} || true && docker rm test-${OS_TYPE} || true
+    - docker run -d --name=test-${OS_TYPE} --cgroupns=host --volume=/sys/fs/cgroup:/sys/fs/cgroup:rw test-build-${OS_TYPE}
+    # - docker exec test-${OS_TYPE} systemctl --version
+    - docker stop test-${OS_TYPE} && docker rm test-${OS_TYPE}
+
 
 ##################################################
 # PUSH CODE AND IMAGE
@@ -54,7 +57,7 @@ variables:
 #push_img_on_gitlab:
 #  stage: push
 #  image: docker:latest
-#  needs: ["yamllint", "hadolint"]
+#  needs: ["test_build"]
 #  services:
 #    - docker:dind
 #  before_script:
@@ -64,26 +67,24 @@ variables:
 #  script:
 #    - docker build -t "${REGISTRY_IMG_TAG}" .
 #    - docker push "${REGISTRY_IMG_TAG}"
-#    - docker logout "${CI_REGISTRY_USER}"
 
 push_img_on_dockerhub:
   stage: push
   image: docker:latest
-  #needs: ["yamllint", "hadolint"]
+  needs: ["test_build"]
   services:
     - docker:dind
   before_script:
     - docker info
     - docker login -u "${DOCKERHUB_USER}" -p "${DOCKERHUB_TOKEN}"
   script:
-    - docker build -t "${DOCKERHUB_TAG}:latest" -t "${DOCKERHUB_TAG}:v${VERSION}" .
-    - docker push "${DOCKERHUB_TAG}:latest"
-    - docker push "${DOCKERHUB_TAG}:v${VERSION}"
+    - docker build -t "${DOCKERHUB_TAG}" .
+    - docker push "${DOCKERHUB_TAG}"
 
 push_src_on_github:
   stage: push
   image: alpine:latest
-  #needs: ["yamllint", "hadolint"]
+  needs: ["test_build"]
   before_script:
     - apk add git openssh-client
     - eval $(ssh-agent -s)
@@ -94,11 +95,12 @@ push_src_on_github:
     - git config --global user.email "${GITHUB_USER_EMAIL}"
     - git config --global user.name "${GITHUB_USER}"
     - git config --global init.defaultBranch main
+    - COMMENT=$(git log -1 --pretty=%B | head -1)
   script:
-    - git clone git@github.com:${GITHUB_USER}/docker-molecule_play.git /tmp/docker-molecule_play
+    - git clone git@github.com:${GITHUB_USER}/docker-molecule_${OS_TYPE}.git /tmp/docker-molecule_${OS_TYPE}
     - rm -rf .git
-    - cp -r . /tmp/docker-molecule_play
-    - cd /tmp/docker-molecule_play
+    - cp -r . /tmp/docker-molecule_${OS_TYPE}/
+    - cd /tmp/docker-molecule_${OS_TYPE}
     - git add -A
-    - git commit -m "adding features" || echo "No changes, nothing to commit!"
+    - git commit -m "${COMMENT}" || echo "No changes, nothing to commit!"
     - git push
