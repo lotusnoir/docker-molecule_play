@@ -1,6 +1,6 @@
 ---
 stages:
-#  - preflight
+  #  - preflight
   - push
 
 variables:
@@ -11,7 +11,6 @@ variables:
   DOCKERHUB_USER: lotusnoir
   GITHUB_USER: lotusnoir
   VERSION: "2.0.0"
-
 
 ##################################################
 # PREFLIGHT
