@@ -3,10 +3,6 @@ LABEL maintainer="lotusnoir"
 
 ENV container=docker
 ENV PIP_ROOT_USER_ACTION=ignore
-ENV DEBIAN_FRONTEND=noninteractive
-ENV LANG=en_US.UTF-8
-ENV LC_ALL=en_US.UTF-8
-ENV LANGUAGE=en_US:en      
 
 ### repos
 RUN apt-get update -y && apt-get install -y --no-install-recommends curl gpg && apt-get clean && rm -rf /var/lib/apt/lists/*
