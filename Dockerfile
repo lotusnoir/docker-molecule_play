@@ -13,7 +13,7 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /
 
 ### apt requirements
 RUN apt-get update -y \
-    && apt-get install -y --no-install-recommends apt-transport-https ca-certificates libssl-dev gnupg-agent lsb-release docker-ce docker-ce-cli containerd.io libssl-dev python3-setuptools python3-netaddr wget \
+    && apt-get install -y --no-install-recommends git apt-transport-https ca-certificates libssl-dev gnupg-agent lsb-release docker-ce docker-ce-cli containerd.io libssl-dev python3-setuptools python3-netaddr wget \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ### pip and curl pkgs
