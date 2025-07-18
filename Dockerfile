@@ -19,6 +19,6 @@ RUN apt-get update -y \
 ### pip and curl pkgs
 RUN /usr/local/bin/python -m pip install --no-cache --upgrade pip \
     && pip3 install --no-cache --disable-pip-version-check ansible-core ansible-lint molecule molecule-docker jmespath flake8 yamllint passlib \
-    && wget -q -O /usr/local/bin/goss https://github.com/aelsabbahy/goss/releases/download/v0.4.8/goss-linux-amd64 && chmod +x /usr/local/bin/goss 
+    && wget -q -O /usr/local/bin/goss https://github.com/aelsabbahy/goss/releases/download/v0.4.9/goss-linux-amd64 && chmod +x /usr/local/bin/goss 
 RUN update-ca-certificates --fresh && export SSL_CERT_DIR=/etc/ssl/certs
 RUN ansible-galaxy collection install community.general community.crypto community.docker community.grafana community.libvirt community.mysql community.windows freeipa.ansible_freeipa fortinet.fortimanager gluster.gluster netbox.netbox devsec.hardening
